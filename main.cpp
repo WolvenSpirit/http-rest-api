@@ -64,15 +64,8 @@ int main(int n, char **args)
     std::string dbPass = config->get("dbPass").toString();
     std::string serverPort = config->get("serverPort").toString();
 
-    if (n < 2)
-    {
-        std::cout << "server port required as argument" << std::endl;
-        return 1;
-    }
-    else
-    {
-        SERVER_PORT = std::stoi(serverPort);
-    }
+    SERVER_PORT = std::stoi(serverPort);
+
     Server s;
     return s.run(n, args);
 }
