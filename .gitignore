@@ -1,0 +1,11 @@
+build
+vcpkg
+Testing
+main
+Make*
+CMakeCache.txt
+CMakeFiles
+CPack*
+CTest*
+Dart*
+cmake_*
