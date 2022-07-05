@@ -7,6 +7,7 @@
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/Net/HTTPServerResponse.h>
 #include <Poco/Util/ServerApplication.h>
+#include <Poco/ThreadPool.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -14,6 +15,7 @@
 #include "config.cpp"
 
 int SERVER_PORT;
+Poco::JSON::Object::Ptr CONFIG;
 
 class RequestHandler : public Poco::Net::HTTPRequestHandler
 {
@@ -47,7 +49,10 @@ class Server : public Poco::Util::ServerApplication
 protected:
     int main(const std::vector<std::string> &args)
     {
-        Poco::Net::HTTPServer s(new HandlerFactory, Poco::Net::ServerSocket(SERVER_PORT), new Poco::Net::HTTPServerParams);
+        auto capacity = CONFIG->get("threadPoolAddCapacity").convert<int>();
+        Poco::ThreadPool pool;
+        pool.addCapacity(capacity);
+        Poco::Net::HTTPServer s(new HandlerFactory, pool, Poco::Net::ServerSocket(SERVER_PORT), new Poco::Net::HTTPServerParams);
         s.start();
         Poco::Util::ServerApplication::waitForTerminationRequest();
         s.stop();
@@ -56,13 +61,13 @@ protected:
 
 int main(int n, char **args)
 {
-    Poco::JSON::Object::Ptr config = getConfig();
-    std::string dbName = config->get("dbName").toString();
-    std::string dbHost = config->get("dbHost").toString();
-    std::string dbPort = config->get("dbPort").toString();
-    std::string dbUser = config->get("dbUser").toString();
-    std::string dbPass = config->get("dbPass").toString();
-    std::string serverPort = config->get("serverPort").toString();
+    CONFIG = getConfig();
+    std::string dbName = CONFIG->get("dbName").toString();
+    std::string dbHost = CONFIG->get("dbHost").toString();
+    std::string dbPort = CONFIG->get("dbPort").toString();
+    std::string dbUser = CONFIG->get("dbUser").toString();
+    std::string dbPass = CONFIG->get("dbPass").toString();
+    std::string serverPort = CONFIG->get("serverPort").toString();
 
     SERVER_PORT = std::stoi(serverPort);
 
