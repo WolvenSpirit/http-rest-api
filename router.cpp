@@ -3,6 +3,7 @@
 #include <vector>
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/Net/HTTPServerResponse.h>
+#include <Poco/JSON/Stringifier.h>
 
 #define HTTP_GET "GET"
 #define HTTP_POST "POST"

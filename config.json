@@ -1,6 +1,6 @@
 {
     "serverPort": 9005,
-    "threadPoolAddCapacity": 3,
+    "threadPoolAddCapacity": 0,
     "dbName": "dbName",
     "dbHost": "localhost",
     "dbPort": 5432,

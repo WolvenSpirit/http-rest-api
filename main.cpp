@@ -53,6 +53,12 @@ protected:
         Poco::ThreadPool pool;
         pool.addCapacity(capacity);
         Poco::Net::HTTPServer s(new HandlerFactory, pool, Poco::Net::ServerSocket(SERVER_PORT), new Poco::Net::HTTPServerParams);
+
+        std::cout << "Starting server on :" << SERVER_PORT << std::endl
+        << "Current threads: " << s.currentThreads() << std::endl
+        << "Thread pool capacity: " << s.maxThreads() << std::endl
+        << "Maximum concurrent connections: " << s.maxConcurrentConnections() << std::endl;
+
         s.start();
         Poco::Util::ServerApplication::waitForTerminationRequest();
         s.stop();
