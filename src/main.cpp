@@ -13,6 +13,7 @@
 #include <map>
 #include "router.cpp"
 #include "config.cpp"
+#include "db.cpp"
 
 int SERVER_PORT;
 Poco::JSON::Object::Ptr CONFIG;
@@ -68,6 +69,8 @@ protected:
 int main(int n, char **args)
 {
     CONFIG = getConfig();
+    DB::PG pg;
+    pg.Connect(CONFIG);
     std::string dbName = CONFIG->get("dbName").toString();
     std::string dbHost = CONFIG->get("dbHost").toString();
     std::string dbPort = CONFIG->get("dbPort").toString();

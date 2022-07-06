@@ -1,9 +1,9 @@
 {
     "serverPort": 9005,
     "threadPoolAddCapacity": 0,
-    "dbName": "dbName",
+    "dbName": "db01",
     "dbHost": "localhost",
     "dbPort": 5432,
-    "dbUser": "dbName",
-    "dbPass": "dbName"
+    "dbUser": "postgres",
+    "dbPass": ""
 }
