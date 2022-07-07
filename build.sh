@@ -1,2 +1,4 @@
-cmake CMakeLists.txt "-DCMAKE_TOOLCHAIN_FILE=D:\src\vcpkg\scripts\buildsystems\vcpkg.cmake"
+rm CMakeCache.txt
+apt install build-essential
+cmake CMakeLists.txt "-DCMAKE_TOOLCHAIN_FILE=${PWD}\vcpkg\scripts\buildsystems\vcpkg.cmake"
 cmake --build .
