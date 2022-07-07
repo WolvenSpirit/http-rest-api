@@ -12,7 +12,7 @@ class DB {
         public:
         Poco::SharedPtr<PGconn, Poco::ReferenceCounter, Poco::ReleasePolicy<PGconn> > db;
         PG() {}
-        void Connect(Poco::JSON::Object::Ptr Config) {
+        void Connect(const Poco::JSON::Object::Ptr &Config) {
             auto name = Config->get("dbName").toString();
             auto host = Config->get("dbHost").toString();
             auto port = Config->get("dbPort").convert<std::string>();
