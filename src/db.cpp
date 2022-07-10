@@ -21,7 +21,7 @@ class DB {
             std::string uri = "postgresql://"+user+":"+pass+"@"+host+":"+port+"/"+name;
             connection = PQconnectdb(uri.c_str());
             if (PQstatus(connection) != CONNECTION_OK) {
-                std::cout << "Failed to connect to postgres" << std::endl 
+                std::cerr << "Failed to connect to postgres" << std::endl 
                 << uri << std::endl;
                 exit(1);
             } else {
