@@ -17,21 +17,14 @@
 
 int SERVER_PORT;
 Poco::JSON::Object::Ptr CONFIG;
+Router HttpRouter;
 
 class RequestHandler : public Poco::Net::HTTPRequestHandler
 {
 public:
     virtual void handleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
     {
-        const std::string uri = req.getURI();
-        const std::string method = req.getMethod();
-        std::cout
-            << method << " "
-            << uri << " "
-            << req.clientAddress()
-            << std::endl;
-
-        router(req, res, uri, method);
+        HttpRouter.HandleRequest(req,res);
     };
     static int count;
 };
@@ -69,6 +62,7 @@ protected:
 int main(int n, char **args)
 {
     CONFIG = getConfig();
+    HttpRouter.Init();
     DB::PG pg;
     pg.Connect(CONFIG);
     std::string dbName = CONFIG->get("dbName").toString();

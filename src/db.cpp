@@ -3,7 +3,7 @@
 #include <libpq-fe.h>
 #include <Poco/JSON/Object.h>
 
-
+// Class DB is meant to be used statically and it is expected to have a lifespan equal to that of the program.
 class DB {
     public:
     class PG {
@@ -19,14 +19,14 @@ class DB {
             auto user = Config->get("dbUser").toString();
             auto pass = Config->get("dbPass").toString();
             std::string uri = "postgresql://"+user+":"+pass+"@"+host+":"+port+"/"+name;
-            connection = PQconnectdb((char*)uri.c_str());
+            connection = PQconnectdb(uri.c_str());
             if (PQstatus(connection) != CONNECTION_OK) {
                 std::cout << "Failed to connect to postgres" << std::endl 
                 << uri << std::endl;
                 exit(1);
             } else {
                 std::cout << "Connected to postgres" << std::endl;
-                // The raw pointer should be wrapped as a smart pointer when used outside the class
+                // The raw pointer should be wrapped into a smart pointer when used outside the class
                 db.assign(connection);
             }
         }
