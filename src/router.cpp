@@ -31,11 +31,11 @@ class Router {
     protected:
     MUX mux;
     public:
-    Poco::SharedPtr<std::map<std::string, std::function<void(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)>>> muxPtr;
+    std::unique_ptr<std::map<std::string, std::function<void(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)>>> muxPtr;
     void Init() {
         mux.insert(std::make_pair(std::string("/"),handleIndex));
 
-        muxPtr.assign(&mux);
+        muxPtr = std::make_unique<MUX>(mux);
     }
     void HandleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res) {
         const std::string uri = req.getURI();
