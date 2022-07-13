@@ -3,7 +3,7 @@
     "threadPoolAddCapacity": 0,
     "dbName": "db01",
     "dbHost": "localhost",
-    "dbPort": 5433,
+    "dbPort": 5432,
     "dbUser": "postgres",
-    "dbPass": "toor"
+    "dbPass": ""
 }

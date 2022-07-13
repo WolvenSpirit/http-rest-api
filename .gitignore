@@ -1,4 +1,5 @@
 build
+__build
 vcpkg
 Testing
 main
@@ -9,3 +10,4 @@ CPack*
 CTest*
 Dart*
 cmake_*
+s

@@ -5,6 +5,11 @@
 #include <Poco/Net/HTTPServerResponse.h>
 #include <Poco/JSON/Stringifier.h>
 #include <functional>
+#include <Poco/JSON/Object.h>
+#include <Poco/JSON/Parser.h>
+#include <fstream>
+#include <libpq-fe.h>
+#include "db.cpp"
 
 #define HTTP_GET "GET"
 #define HTTP_POST "POST"
@@ -25,7 +30,28 @@ void handleIndex(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerRespons
 void handleGetData(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
 {
 }
+void insertItem(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
+{   
+    Poco::JSON::Parser parser;
+    std::ostringstream streamBuf;
+    std::istream &is = req.stream();
+    streamBuf << is.rdbuf();
+    const auto obj = parser.parse(streamBuf.str()).extract<Poco::JSON::Object::Ptr>();
 
+    std::cout << obj->get("foo").convert<int>() << std::endl;
+    std::vector<char*> queryArgs;
+    char* name = "foo";
+    queryArgs.push_back(name);
+
+    // Test libpq insert
+    pg.Exec("insert into item (name) values ('name');",queryArgs);
+
+    req.clear();
+    res.setStatus(Poco::Net::HTTPServerResponse::HTTP_OK);
+    auto &wr = res.send();
+    wr.flush();
+    return;
+}
 
 class Router {
     protected:
@@ -34,7 +60,7 @@ class Router {
     std::unique_ptr<std::map<std::string, std::function<void(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)>>> muxPtr;
     void Init() {
         mux.insert(std::make_pair(std::string("/"),handleIndex));
-
+        mux["/item"] = insertItem;
         muxPtr = std::make_unique<MUX>(mux);
     }
     void HandleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res) {
