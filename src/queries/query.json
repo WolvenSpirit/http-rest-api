@@ -1,0 +1,12 @@
+{
+    "select": {
+        "itemAll": "select name, price, data, created from item;",
+        "itemById": "select name, price, data, created from item where id = $1;"
+    },
+    "insert": {
+        "item": "insert into item (name, price, data) values ($1,$2,$3);"
+    },
+    "update": {
+        "item": ""
+    }
+}

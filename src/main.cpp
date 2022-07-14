@@ -63,13 +63,9 @@ int main(int n, char **args)
 {
     CONFIG = getConfig();
     HttpRouter.Init();
-    DB::PG pg;
+    pg = PG();
     pg.Connect(CONFIG);
-    std::string dbName = CONFIG->get("dbName").toString();
-    std::string dbHost = CONFIG->get("dbHost").toString();
-    std::string dbPort = CONFIG->get("dbPort").toString();
-    std::string dbUser = CONFIG->get("dbUser").toString();
-    std::string dbPass = CONFIG->get("dbPass").toString();
+    pg.MigrateUp();
     std::string serverPort = CONFIG->get("serverPort").toString();
 
     SERVER_PORT = std::stoi(serverPort);

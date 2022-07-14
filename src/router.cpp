@@ -10,6 +10,7 @@
 #include <fstream>
 #include <libpq-fe.h>
 #include "db.cpp"
+#include <math.h>
 
 #define HTTP_GET "GET"
 #define HTTP_POST "POST"
@@ -27,8 +28,21 @@ void handleIndex(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerRespons
     wr.flush();
     return;
 }
-void handleGetData(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
+void getItems(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
 {
+    Poco::JSON::Stringifier serializer;
+    Poco::JSON::Object data;
+    auto result = pg.Select("select name, price, data, created from item;");
+    for (auto r : result) {
+        data.set("name",r["name"]);
+        data.set("price",r["price"]);
+        data.set("data",r["data"]);
+        data.set("created",r["created"]);
+        std::ostream &wr = res.send();
+        data.stringify(wr);
+        wr.flush();
+        return;
+    }
 }
 void insertItem(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
 {   
@@ -38,14 +52,17 @@ void insertItem(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse
     streamBuf << is.rdbuf();
     const auto obj = parser.parse(streamBuf.str()).extract<Poco::JSON::Object::Ptr>();
 
-    std::cout << obj->get("foo").convert<int>() << std::endl;
-    std::vector<char*> queryArgs;
-    char* name = "foo";
-    queryArgs.push_back(name);
-
-    // Test libpq insert
-    pg.Exec("insert into item (name) values ('name');",queryArgs);
-
+    auto name = obj->get("name").convert<std::string>();
+    auto price = obj->get("price").extract<std::float_t>();
+    auto data = obj->get("data").convert<std::string>();
+    std::cout << name << price << data << std::endl;
+    try {
+        pqxx::work w{*pg.connection};
+        w.exec_params("insert into item (name,price,data) values ($1,$2,$3);",name,price,data);
+        w.commit();
+    } catch(const std::exception &err) {
+        std::cerr << err.what() << std::endl;
+    }
     req.clear();
     res.setStatus(Poco::Net::HTTPServerResponse::HTTP_OK);
     auto &wr = res.send();
