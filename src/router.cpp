@@ -11,6 +11,7 @@
 #include <libpq-fe.h>
 #include "db.cpp"
 #include <math.h>
+#include "queries.cpp"
 
 #define HTTP_GET "GET"
 #define HTTP_POST "POST"
@@ -28,22 +29,32 @@ void handleIndex(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerRespons
     wr.flush();
     return;
 }
+
+// Test endpoint
 void getItems(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
 {
-    Poco::JSON::Stringifier serializer;
-    Poco::JSON::Object data;
-    auto result = pg.Select("select name, price, data, created from item;");
+    Poco::JSON::Array arr;
+    res.setContentType("application/json");
+    res.setStatus(Poco::Net::HTTPServerResponse::HTTP_OK);
+    std::ostream &wr = res.send();
+    auto query = DBQueries->Select->get("itemAll").convert<std::string>();
+    std::cout << query << std::endl;
+    pqxx::result result = pg.Select(query);
     for (auto r : result) {
-        data.set("name",r["name"]);
-        data.set("price",r["price"]);
-        data.set("data",r["data"]);
-        data.set("created",r["created"]);
-        std::ostream &wr = res.send();
-        data.stringify(wr);
-        wr.flush();
-        return;
+        Poco::JSON::Object data(Poco::JSON_PRESERVE_KEY_ORDER);
+        data.set("name",r["name"].c_str());
+        data.set("price",r["price"].c_str());
+        data.set("data",r["data"].c_str());
+        data.set("created",r["created"].c_str());
+        arr.add(data);
     }
+
+    arr.stringify(wr);
+    wr.flush();
+    return;
 }
+
+// Test endpoint
 void insertItem(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
 {   
     Poco::JSON::Parser parser;
@@ -53,12 +64,13 @@ void insertItem(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse
     const auto obj = parser.parse(streamBuf.str()).extract<Poco::JSON::Object::Ptr>();
 
     auto name = obj->get("name").convert<std::string>();
-    auto price = obj->get("price").extract<std::float_t>();
+    auto price = obj->get("price").convert<std::string>();
     auto data = obj->get("data").convert<std::string>();
     std::cout << name << price << data << std::endl;
     try {
-        pqxx::work w{*pg.connection};
-        w.exec_params("insert into item (name,price,data) values ($1,$2,$3);",name,price,data);
+        pqxx::work w{*pg.db.get()};
+        std::string query = DBQueries->Insert->get("item").toString();
+        w.exec_params(query,name,price,data);
         w.commit();
     } catch(const std::exception &err) {
         std::cerr << err.what() << std::endl;
@@ -78,6 +90,7 @@ class Router {
     void Init() {
         mux.insert(std::make_pair(std::string("/"),handleIndex));
         mux["/item"] = insertItem;
+        mux["/get/items"] = getItems;
         muxPtr = std::make_unique<MUX>(mux);
     }
     void HandleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res) {

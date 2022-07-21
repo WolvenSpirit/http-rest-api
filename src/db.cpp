@@ -11,7 +11,6 @@
     class PG {
         private:
         public:
-        pqxx::connection* connection;
         Poco::SharedPtr<pqxx::connection, Poco::ReferenceCounter, Poco::ReleasePolicy<pqxx::connection> > db;
         PG() {}
         void Connect(const Poco::JSON::Object::Ptr &Config) {
@@ -21,14 +20,13 @@
             auto user = Config->get("dbUser").toString();
             auto pass = Config->get("dbPass").toString();
             std::string uri = "postgresql://"+user+":"+pass+"@"+host+":"+port+"/"+name;
-            connection = new pqxx::connection(uri.c_str());
-            db.assign(connection);
+            db = new pqxx::connection(uri.c_str());
 
-            if ((*connection).is_open()) {
-                std::cout << "Connected using " << (*connection).connection_string() << std::endl;
+            if ((*db.get()).is_open()) {
+                std::cout << "Connected using " << (*db.get()).connection_string() << std::endl;
                 return;
             } else {
-                 std::cout << "Connection to " << (*connection).dbname() << " not established" << std::endl;
+                 std::cout << "Connection to " << (*db.get()).dbname() << " not established" << std::endl;
                  exit(1);
             }
 
@@ -42,14 +40,15 @@
             return result;
         }
 
-        void Exec(const std::string query, std::vector<std::string> args) {
+        template<typename ...VariadicQueryArgument>
+        void Exec(const std::string query, VariadicQueryArgument... args) {
             try {
                 auto conn = db.get();
                 if (conn == NULL || !(*conn).is_open()) {
                     std::cerr << "Database connection closed" << std::endl;
                 }
                 pqxx::work tx{*conn};
-                auto result = tx.exec_params(query,args);
+                auto result = tx.exec_params(query,args...);
                 tx.commit();
             } catch(const std::exception &err) {
                 std::cerr << err.what() << std::endl;

@@ -61,6 +61,7 @@ protected:
 
 int main(int n, char **args)
 {
+    DBQueries = loadQueries();
     CONFIG = getConfig();
     HttpRouter.Init();
     pg = PG();
