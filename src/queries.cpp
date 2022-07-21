@@ -7,7 +7,7 @@ class Queries {
     public:
     Queries(const Poco::JSON::Object::Ptr &queries) {
         // Just make sure the object is valid
-        std::cerr << "query.json select block is null"
+        std::cerr << "query.json select block is null" << std::endl;
         if (queries->isNull("select")) {
             exit(1);
         }
