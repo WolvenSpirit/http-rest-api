@@ -61,8 +61,11 @@ protected:
 
 int main(int n, char **args)
 {
-    DBQueries = loadQueries();
     CONFIG = getConfig();
+    prometheus::Exposer exposer{CONFIG->get("exposer").toString()};
+    Metrics::InitCounters();
+    exposer.RegisterCollectable(Metrics::registry);
+    DBQueries = loadQueries();
     HttpRouter.Init();
     pg = PG();
     pg.Connect(CONFIG);

@@ -13,6 +13,7 @@ find_package(Poco CONFIG COMPONENTS Foundation Util Net Zip JSON)
 # find_package(PostgreSQL REQUIRED)
 find_package(OpenSSL CONFIG COMPONENTS SSL Crypto)
 find_package(libpqxx CONFIG COMPONENTS pqxx) 
+find_package(prometheus-cpp CONFIG COMPONENTS core pull)
 
 add_executable(main src/main.cpp)
 
@@ -20,6 +21,7 @@ target_link_libraries(main PUBLIC libpqxx::pqxx)
 target_link_libraries(main PRIVATE PostgreSQL::PostgreSQL)
 target_link_libraries(main PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(main PUBLIC Poco::Foundation Poco::Zip Poco::Util Poco::Net Poco::JSON) 
+target_link_libraries(main PUBLIC prometheus-cpp::core prometheus-cpp::pull)
 set(CMAKE_CXX_FLAG "${CMAKE_CXX_FLAG} -lssl -lcrypto")
 #target_link_libraries(main
 #                        PRIVATE libpqxx::pqxx

@@ -12,6 +12,7 @@
 #include "db.cpp"
 #include <math.h>
 #include "queries.cpp"
+#include "metric.cpp"
 
 #define HTTP_GET "GET"
 #define HTTP_POST "POST"
@@ -105,6 +106,7 @@ class Router {
         for (MUX::iterator n = mux.begin();n != mux.end();n++) {
             if (n->first == uri) {
                 n->second(req,res);
+                Metrics::requests_counter->Add({{"http_method",method},{"uri",uri}}).Increment();
                 return;
             }
         }
