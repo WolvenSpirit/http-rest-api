@@ -24,3 +24,12 @@ services:
     restart: always
     ports:
       - 8085:8080
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9007:9090
+    volumes:
+      - "./prom:/etc/prometheus"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
