@@ -31,9 +31,8 @@ This API is an example (or template), thus it only has one insert item and one g
 - [GET] `get/items`
 - [POST] `/item`  
     - content type `application/json`
-                with payload, for simplicity and consistency the price is submitted as a string (example)
-                
-                ```json
+    with payload, for simplicity and consistency the price is submitted as a string (example)
+```json
                     {
                         "name":"foo",
                         "price": "3.20",
@@ -43,7 +42,7 @@ This API is an example (or template), thus it only has one insert item and one g
                             }
                         }
                     }
-                ```
+```
 
 ### Alternative
 
