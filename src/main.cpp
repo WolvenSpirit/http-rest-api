@@ -54,6 +54,9 @@ protected:
         << "Maximum concurrent connections: " << s.maxConcurrentConnections() << std::endl;
 
         s.start();
+        // Pass a pointer to the router class
+        // Used for polling stats regarding the server via an endpoint
+        HttpRouter.s = &s;
         Poco::Util::ServerApplication::waitForTerminationRequest();
         s.stop();
     };

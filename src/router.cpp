@@ -21,12 +21,23 @@
 
 typedef std::map<std::string, std::function<void(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)>> MUX;
 
-void handleIndex(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
+void handleIndex(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res, Poco::Net::HTTPServer *s = NULL)
 {
+    if (s == NULL) {
+        res.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+        res.setContentType("text/html"); 
+        std::ostream &wr = res.send();
+        wr << "<h3>Internal error</h3></br>" << std::endl;
+        wr.flush();
+        return;
+    }
     res.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
-    res.setContentType("text/html");
+    res.setContentType("application/json");
     std::ostream &wr = res.send();
-    wr << "<h3>WolvenSpirit</h3></br><p>via Router class</p>" << std::endl;
+    Poco::JSON::Object data(Poco::JSON_PRESERVE_KEY_ORDER);
+    data.set("name","WolvenSpirit's API");
+    data.set("current_threads",s->currentThreads());
+    data.stringify(wr);
     wr.flush();
     return;
 }
@@ -87,9 +98,10 @@ class Router {
     protected:
     MUX mux;
     public:
+    Poco::Net::HTTPServer *s;
     std::unique_ptr<std::map<std::string, std::function<void(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)>>> muxPtr;
     void Init() {
-        mux.insert(std::make_pair(std::string("/"),handleIndex));
+        //mux.insert(std::make_pair(std::string("/"),handleIndex));
         mux["/item"] = insertItem;
         mux["/get/items"] = getItems;
         muxPtr = std::make_unique<MUX>(mux);
@@ -109,6 +121,10 @@ class Router {
                 Metrics::requests_counter->Add({{"http_method",method},{"uri",uri}}).Increment();
                 return;
             }
+        }
+        if (uri == "/") {
+            // Expose server stats
+            handleIndex(req,res,s);
         }
         res.setStatus(Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
         res.setContentType("text/html");
