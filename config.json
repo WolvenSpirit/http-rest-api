@@ -2,8 +2,8 @@
     "serverPort": 9005,
     "threadPoolAddCapacity": 0,
     "dbName": "db01",
-    "dbHost": "localhost",
-    "dbPort": 5433,
+    "dbHost": "db",
+    "dbPort": 5432,
     "dbUser": "postgres",
     "dbPass": "toor",
     "exposer":"0.0.0.0:8087"

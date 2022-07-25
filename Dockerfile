@@ -15,17 +15,23 @@ RUN apt-get install -y cmake build-essential curl git pkg-config autoconf
 RUN ./vcpkg_install.sh
 
 # RUN ./build.sh
-RUN rm CMakeCache.txt
+#RUN rm CMakeCache.txt
 
 RUN cmake CMakeLists.txt "-DCMAKE_TOOLCHAIN_FILE=${PWD}\vcpkg\scripts\buildsystems\vcpkg.cmake"
 
 RUN cmake --build .
 
+RUN ls 
+
 ################################
 
 FROM debian:stable-slim
 
-COPY --from=build main .
+COPY ./config.json ./config.json
 
-RUN ./main 9005
+COPY --from=build src ./src 
+COPY --from=build main ./main
+
+ENTRYPOINT [ "./main" ] 
+#./main 9005
 

@@ -28,10 +28,12 @@ Queries* loadQueries() {
     Poco::JSON::Parser p;
     std::fstream fl;
     std::ostringstream stream;
-    fl.open("src/queries/query.json",std::ios_base::in);
+    std::string queriesFile = "src/queries/query.json";
+    fl.open(queriesFile,std::ios_base::in);
     if(fl.is_open()) { 
         stream << fl.rdbuf(); 
     } else {
+        std::cerr << "failed to open " << queriesFile << std::endl;
         exit(1);
     }
     fl.close();
