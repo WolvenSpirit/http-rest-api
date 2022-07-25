@@ -52,3 +52,10 @@ services:
     volumes:
       - ./traefik/traefik.toml:/etc/traefik/traefik.toml
       - /var/run/docker.sock:/var/run/docker.sock
+  
+  grafana:
+    image: grafana/grafana:9.0.4
+    ports:
+      - 9011:3000
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
