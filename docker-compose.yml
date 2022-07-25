@@ -39,3 +39,16 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - api
+
+  traefik:
+    image: traefik
+    ports:
+      # HTTP 
+      - 9008:80
+      # The Web UI (enabled by --api.insecure=true)
+      - 9009:8080
+      # Prometheus metrics exposer
+      - 9010:9010
+    volumes:
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml
+      - /var/run/docker.sock:/var/run/docker.sock

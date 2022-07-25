@@ -19,6 +19,7 @@ Services:
 - Postgres
 - Adminer
 - Prometheus
+- Traefik
 - This api via the image you built
     - API exposes stats on base path `/`
     - Test endpoints 
@@ -43,6 +44,16 @@ This API is an example (or template), thus it only has one insert item and one g
                         }
                     }
 ```
+
+### Prometheus
+
+This setup already scrapes API and Traefik, check it here `http://localhost:9007/graph`.
+
+Endpoint for checking discovered targets (Traefik and API should be there) `http://localhost:9007/api/v1/targets`.
+
+### Traefik dashboard
+
+Can be accessed locally here `http://localhost:9009/dashboard/#/`.
 
 ### Alternative
 
