@@ -54,6 +54,7 @@ Endpoint for checking discovered targets (Traefik and API should be there) `http
 ### Traefik dashboard
 
 Can be accessed locally here `http://localhost:9009/dashboard/#/`.
+![Traefik heap graph](readme_assets/traefik_heap_graph.png?raw=true)
 
 ### Alternative
 
