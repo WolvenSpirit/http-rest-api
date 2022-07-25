@@ -48,13 +48,13 @@ This API is an example (or template), thus it only has one insert item and one g
 ### Prometheus
 
 This setup already scrapes API and Traefik, check it here `http://localhost:9007/graph`.
+![Traefik heap graph](readme_assets/traefik_heap_graph.png?raw=true)
 
 Endpoint for checking discovered targets (Traefik and API should be there) `http://localhost:9007/api/v1/targets`.
 
 ### Traefik dashboard
 
 Can be accessed locally here `http://localhost:9009/dashboard/#/`.
-![Traefik heap graph](readme_assets/traefik_heap_graph.png?raw=true)
 
 ### Alternative
 
