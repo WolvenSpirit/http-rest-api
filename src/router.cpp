@@ -160,8 +160,8 @@ class Router {
         for (MUX::iterator n = mux.begin();n != mux.end();n++) {
             if (n->first == uri) {
                 n->second(req,res);
-                return;
                 incrementRC({{"http_method",method},{"uri",uri}});
+                return;
             }
         }
         if (uri == "/") {
