@@ -7,12 +7,15 @@
 #include <functional>
 #include <Poco/JSON/Object.h>
 #include <Poco/JSON/Parser.h>
+#include <Poco/Net/MultipartReader.h>
+#include <Poco/Net/NetException.h>
 #include <fstream>
 #include <libpq-fe.h>
 #include "db.cpp"
 #include <math.h>
 #include "queries.cpp"
 #include "metric.cpp"
+#include <future>
 
 #define HTTP_GET "GET"
 #define HTTP_POST "POST"
@@ -20,6 +23,10 @@
 #define HTTP_DELETE "DELETE"
 
 typedef std::map<std::string, std::function<void(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)>> MUX;
+
+void incrementRC(const prometheus::Labels &labels) {
+    return Metrics::requests_counter->Add(labels).Increment();
+}
 
 void handleIndex(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res, Poco::Net::HTTPServer *s = NULL)
 {
@@ -37,9 +44,40 @@ void handleIndex(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerRespons
     Poco::JSON::Object data(Poco::JSON_PRESERVE_KEY_ORDER);
     data.set("name","WolvenSpirit's API");
     data.set("current_threads",s->currentThreads());
+    data.set("current_connections",s->currentConnections());
+    data.set("max_concurrent_connections", s->maxConcurrentConnections());
     data.stringify(wr);
     wr.flush();
     return;
+}
+
+void uploadFile(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res) {
+    Poco::Net::MultipartReader reader(req.stream());
+    // This needs to be hardened, doesn't check for mime, doesn't check size, doesn't limit maximum number of files
+    while (reader.hasNextPart()) {
+        try {
+            Poco::Net::MessageHeader headerv;
+            auto &header = headerv;
+            reader.nextPart(header);
+            const std::istream &ref = reader.stream();
+
+            std::string end;
+            Poco::Net::NameValueCollection params;
+            // This Poco class has a rather weird usage pattern, not immediately obvious that it should be used like this
+            header.splitParameters(header["Content-Disposition"],end,params);
+            std::cout << params.get("filename","unnamed") << std::endl;
+
+            // Instead of writing to disk, upload the buffer data to s3 or similar
+            std::fstream fl;
+            fl.open("uploads/"+params.get("filename","unnamed"),std::ios_base::out);
+            fl << ref.rdbuf();
+            fl.close();
+        } catch (const std::exception &err) {
+            std::cerr << err.what() << std::endl;
+        }   
+    }
+    res.setStatus(Poco::Net::HTTPServerResponse::HTTP_OK);
+    res.send().flush();
 }
 
 // Test endpoint
@@ -101,9 +139,9 @@ class Router {
     Poco::Net::HTTPServer *s;
     std::unique_ptr<std::map<std::string, std::function<void(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)>>> muxPtr;
     void Init() {
-        //mux.insert(std::make_pair(std::string("/"),handleIndex));
         mux["/item"] = insertItem;
         mux["/get/items"] = getItems;
+        mux["/upload"] = uploadFile;
         muxPtr = std::make_unique<MUX>(mux);
     }
     void HandleRequest(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res) {
@@ -114,12 +152,16 @@ class Router {
             << uri << " "
             << req.clientAddress()
             << std::endl;
-
+        incrementRC({
+                        {"current_threads", std::to_string(s->currentThreads())},
+                        {"current_connections", std::to_string(s->currentConnections())},
+                        {"max_concurrent_connections", std::to_string(s->maxConcurrentConnections())}
+                    });
         for (MUX::iterator n = mux.begin();n != mux.end();n++) {
             if (n->first == uri) {
                 n->second(req,res);
-                Metrics::requests_counter->Add({{"http_method",method},{"uri",uri}}).Increment();
                 return;
+                incrementRC({{"http_method",method},{"uri",uri}});
             }
         }
         if (uri == "/") {
