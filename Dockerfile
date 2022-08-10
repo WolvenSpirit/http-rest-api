@@ -1,6 +1,7 @@
 FROM ubuntu:latest as build
 
 COPY ./src ./src
+COPY ./test ./test
 
 COPY ./CMakeLists.txt ./CMakeLists.txt
 
@@ -17,6 +18,8 @@ RUN ./vcpkg_install.sh
 # RUN ./build.sh
 #RUN rm CMakeCache.txt
 
+ENV BUILD_CONTEXT=DOCKER
+
 RUN cmake CMakeLists.txt "-DCMAKE_TOOLCHAIN_FILE=${PWD}\vcpkg\scripts\buildsystems\vcpkg.cmake"
 
 RUN cmake --build .
@@ -30,8 +33,9 @@ FROM debian:stable-slim
 COPY ./config.json ./config.json
 
 COPY --from=build src ./src 
+#COPY --from=build test ./test 
 COPY --from=build main ./main
+#COPY --from=build test ./test
 
 ENTRYPOINT [ "./main" ] 
-#./main 9005
 

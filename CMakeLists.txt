@@ -14,12 +14,23 @@ find_package(Poco CONFIG COMPONENTS Foundation Util Net Zip JSON)
 find_package(OpenSSL CONFIG COMPONENTS SSL Crypto)
 find_package(libpqxx CONFIG COMPONENTS pqxx) 
 find_package(prometheus-cpp CONFIG COMPONENTS core pull)
-find_package(Catch2 CONFIG COMPONENTS Catch2 Catch2WithMain)
+
+# CMake Tools vscode extension errors without setting BUILD_CONTEXT to a default.
+# However the file is valid without defining the HOST default if invoked via command-line.
+# Will be extended with a TEST context
+if(NOT DEFINED $ENV{BUILD_CONTEXT})
+    set(ENV{BUILD_CONTEXT} HOST)
+endif()
+
+message("Running CmakeLists with BUILD_CONTEXT=$ENV{BUILD_CONTEXT}")
+
+if($ENV{BUILD_CONTEXT} STREQUAL "DOCKER")
+    message("Skipping test scope find_package lines")
+else()
+    find_package(Catch2 CONFIG COMPONENTS Catch2 Catch2WithMain)
+endif()
 
 add_executable(main src/main.cpp)
-
-add_executable(test test/main.cpp)
-add_test(NAME test COMMAND test)
 
 target_link_libraries(main PUBLIC libpqxx::pqxx)
 target_link_libraries(main PRIVATE PostgreSQL::PostgreSQL)
@@ -27,8 +38,14 @@ target_link_libraries(main PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(main PUBLIC Poco::Foundation Poco::Zip Poco::Util Poco::Net Poco::JSON) 
 target_link_libraries(main PUBLIC prometheus-cpp::core prometheus-cpp::pull)
 
-target_link_libraries(test PUBLIC Catch2::Catch2 Catch2::Catch2WithMain)
-target_link_libraries(test PUBLIC Poco::Foundation Poco::Zip Poco::Util Poco::Net Poco::JSON) 
+if($ENV{BUILD_CONTEXT} STREQUAL "DOCKER")
+    message("Skipping test scope add_executable and linking")
+else()
+    add_executable(test test/main.cpp)
+    add_test(NAME test COMMAND test)
+    target_link_libraries(test PUBLIC Catch2::Catch2 Catch2::Catch2WithMain)
+    target_link_libraries(test PUBLIC Poco::Foundation Poco::Zip Poco::Util Poco::Net Poco::JSON) 
+endif()
 
 set(CMAKE_CXX_FLAG "${CMAKE_CXX_FLAG} -lssl -lcrypto")
 message("Linker flags: ${CMAKE_CXX_FLAG} CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}") 
