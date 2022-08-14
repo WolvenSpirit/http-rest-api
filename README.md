@@ -76,6 +76,11 @@ Run `build.sh` and you should have a main binary produced.
 
 Start the server `./main`.
 
+### Tests
+
+Make sure the test target is built.
+Run the available tests using `./build/test -v high -s`. Make sure the server is running since it includes e2e.
+
 <!---
 
 ### Profile the app with perf tool
