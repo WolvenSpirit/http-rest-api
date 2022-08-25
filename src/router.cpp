@@ -83,6 +83,7 @@ void uploadFile(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse
 // Test endpoint
 void getItems(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &res)
 {
+    try {
     Poco::JSON::Array arr;
     res.setContentType("application/json");
     res.setStatus(Poco::Net::HTTPServerResponse::HTTP_OK);
@@ -101,6 +102,7 @@ void getItems(Poco::Net::HTTPServerRequest &req, Poco::Net::HTTPServerResponse &
 
     arr.stringify(wr);
     wr.flush();
+    } catch (const std::exception &err) { std::cerr << "getItems:" << err.what() << std::endl; }
     return;
 }
 
